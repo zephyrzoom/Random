@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>抽奖</title>
+    <link rel="stylesheet" href="css/prize.css">
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/photon.min.css">
+    <!-- animate -->
+    <link rel="stylesheet" href="http://s.mlcdn.co/animate.css">
+    <!-- Jquery -->
+    <script>window.$ = window.jQuery = require('./js/jquery.js')</script>
+  </head>
+  <body>
+    <script>
+    const {ipcRenderer} = require('electron');
+    $(document).ready(function () {
+      ipcRenderer.send('ready-message', 'ready');
+    });
+
+    ipcRenderer.on('list-message', (event, arg) => {
+      var time = 500;
+      var i;
+      var sid = setInterval(function () {
+        if (time >= 2000) {
+          clearInterval(sid);
+          ipcRenderer.send('prize-complete', i);
+        }
+        i = Math.floor(Math.random()*arg.length);
+        var h = document.getElementById('window');
+        h.innerHTML = '<h1 class="animated pulse">' + arg[i] + '</h1>';
+        time += 100;
+      }, time);
+    });
+
+    </script>
+    <div class="window" id="window">
+      <h1>开始</h1>
+    </div>
+  </body>
+</html>
