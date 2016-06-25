@@ -19,17 +19,17 @@
     });
 
     ipcRenderer.on('list-message', (event, arg) => {
-      var time = 500;
+      var time = 600;
       var i;
       var sid = setInterval(function () {
-        if (time >= 2000) {
+        if (time >= 4000) {
           clearInterval(sid);
           ipcRenderer.send('prize-complete', i);
         }
         i = Math.floor(Math.random()*arg.length);
         var h = document.getElementById('window');
         h.innerHTML = '<h1 class="animated pulse">' + arg[i] + '</h1>';
-        time += 100;
+        time += 500;
       }, time);
     });
 

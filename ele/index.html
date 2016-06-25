@@ -65,7 +65,7 @@
     // 打开抽奖页面
     function randomPrize() {
       if (list.length > 0) {
-        prizeWin = new BrowserWindow({width: 400, height: 300, frame: false, alwaysOnTop: true});
+        prizeWin = new BrowserWindow({width: 500, height: 300, frame: false, alwaysOnTop: true, fullscreen: true});
         prizeWin.loadURL(`file://${__dirname}/prize.html`);
         ipcMain.on('ready-message', (event, arg) => {
           event.sender.send('list-message', list);

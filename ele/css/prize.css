@@ -3,11 +3,8 @@
   background-repeat: no-repeat;
   background-size: 100%;
 
-  text-align: center;
-}
-
-h1 {
-  display: inline-block;
-  vertical-align: middle;
-  line-height: normal;
+  /*上下左右居中*/
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
