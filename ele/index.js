@@ -10,7 +10,6 @@ function createWindow() {
 
   // and load the index.html of the app.
   win.loadURL(`file://${__dirname}/index.html`);
-
   // Emitted when the window is closed.
   win.on('closed', () => {
     win = null;
