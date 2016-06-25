@@ -2,52 +2,60 @@
 <html>
 
 <head>
-    <meta charset="UTF-8">
-    <title>抽奖</title>
-    <link rel="stylesheet" href="css/prize.css">
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="css/photon.min.css">
-    <!-- animate -->
-    <link rel="stylesheet" href="http://s.mlcdn.co/animate.css">
-    <!-- Jquery -->
-    <script>
-        window.$ = window.jQuery = require('./js/jquery.js')
-    </script>
+  <meta charset="UTF-8">
+  <title>抽奖</title>
+  <link rel="stylesheet" href="css/prize.css">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/photon.min.css">
+  <!-- animate -->
+  <link rel="stylesheet" href="http://s.mlcdn.co/animate.css">
+  <!-- Jquery -->
+  <script>
+    window.$ = window.jQuery = require('./js/jquery.js')
+  </script>
 </head>
 
 <body>
-    <script>
-        const {
-            ipcRenderer
-        } = require('electron');
-        $(document).ready(function() {
-            ipcRenderer.send('ready-message', 'ready');
-        });
+  <script>
+    const {
+      ipcRenderer
+    } = require('electron');
+    $(document).ready(function() {
+      ipcRenderer.send('ready-message', 'ready');
+    });
 
-        ipcRenderer.on('list-message', (event, arg) => {
-            var time = 600;
-            // 获奖的序号
-            var i;
+    let list = [];
 
-            // 每600ms执行一次
-            var sid = setInterval(function() {
-                if (time >= 8000) {
-                    clearInterval(sid);
-                    $('div').click(function () {
-                      ipcRenderer.send('prize-complete', i);
-                    });
-                }
-                i = Math.floor(Math.random() * arg.length);
-                // 每次执行都重新填充h1，达到出现动画效果的目的
-                var h = document.getElementById('window');
-                h.innerHTML = '<h1 class="animated pulse">' + arg[i] + '</h1>';
-                time += 500;
-            }, time);
-        });
-    </script>
-    <div class="window" id="window">
-        <h1>开始</h1>
-    </div>
+    ipcRenderer.on('list-message', (event, arg) => {
+      list = arg;
+      $('div').one('click', function() {
+        startPrize();
+      })
+    });
+
+    function startPrize() {
+      var time = 1000;
+      // 获奖的序号
+      var i;
+      // 每600ms执行一次
+      var sid = setInterval(function() {
+        if (time >= 8000) {
+          clearInterval(sid);
+          $('div').click(function() {
+            ipcRenderer.send('prize-complete', i);
+          });
+        }
+        i = Math.floor(Math.random() * list.length);
+        // 每次执行都重新填充h1，达到出现动画效果的目的
+        var h = document.getElementById('window');
+        h.innerHTML = '<h1 class="animated rotateIn">' + list[i] + '</h1>';
+        time += 500;
+      }, time);
+    }
+  </script>
+  <div class="window" id="window">
+    <h1>开始</h1>
+  </div>
 </body>
 
 </html>

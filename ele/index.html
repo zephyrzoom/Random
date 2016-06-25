@@ -84,8 +84,7 @@
       fs.readFile(filePath.toString(), (err, data) => {
         if (err) throw err;
         console.log(data);
-        list = data.toString().split('\n');
-        list.pop();
+        list = data.toString().trim().split('\n');
         updateList();
       });
     }
@@ -114,15 +113,15 @@
           fullscreen: true
         });
         prizeWin.loadURL(`file://${__dirname}/prize.html`);
-        ipcMain.on('ready-message', (event, arg) => {
-          event.sender.send('list-message', list);
-        });
-
         prizeWin.on('closed', () => {
           prizeWin = null;
         });
       }
     }
+
+    ipcMain.on('ready-message', (event, arg) => {
+      event.sender.send('list-message', list);
+    });
 
     // 用最新的List填充table
     function updateList() {
@@ -153,9 +152,7 @@
 
     // 保存获奖名单到文件
     function savePrize() {
-      // 每行存一个获奖者
-      var savePrizeList = prizeList.join('\n');
-      fs.writeFile('获奖名单.txt', savePrizeList, (err) => {
+      fs.writeFile('获奖名单.txt', prizeList, (err) => {
         if (err) throw err;
       });
     }
@@ -175,7 +172,7 @@
   <div class="window">
     <div class="window-content">
       <div class="pane-group">
-        <div class="pane-sm sidebar" id="pane">
+        <div class="pane pane-sm sidebar" id="pane">
           <ul class="list-group" id="prize-list">
             <li class="list-group-header">
               <h4>获奖名单</h4>
@@ -200,7 +197,7 @@
           <table class="table-striped">
             <thead>
               <tr>
-                <th width="20">序号</th>
+                <th id="nu">序号</th>
                 <th>名称</th>
               </tr>
             </thead>
