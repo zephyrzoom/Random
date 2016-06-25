@@ -1,40 +1,45 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="UTF-8">
     <title>添加</title>
     <link rel="stylesheet" href="css/add.css">
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/photon.min.css">
     <!-- Jquery -->
-    <script>window.$ = window.jQuery = require('./js/jquery.js')</script>
-  </head>
-  <body>
     <script>
-    const {ipcRenderer} = require('electron');
-    $(document).ready(function () {
-      $('.btn-negative').click(function () {
-        ipcRenderer.send('synchronous-close', 'close');
-      });
+        window.$ = window.jQuery = require('./js/jquery.js')
+    </script>
+</head>
 
-      $('.btn-positive').click(function () {
-        var name = document.getElementById('name').value;
-        ipcRenderer.send('synchronous-add', name);
-      });
-    });
+<body>
+    <script>
+        const {
+            ipcRenderer
+        } = require('electron');
+        $(document).ready(function() {
+            $('.btn-negative').click(function() {
+                ipcRenderer.send('synchronous-close', 'close');
+            });
 
-
+            $('.btn-positive').click(function() {
+                var name = document.getElementById('name').value;
+                ipcRenderer.send('synchronous-add', name);
+            });
+        });
     </script>
     <div class="window">
-      <div class="window-content">
-        <div class="pane-group">
-          <div class="pane">
-            <input type="text" class="form-control" placeholder="名称" id="name">
-            <button class="btn btn-positive btn-large">确定</button>
-            <button class="btn btn-negative btn-large">取消</button>
-          </div>
+        <div class="window-content">
+            <div class="pane-group">
+                <div class="pane">
+                    <input type="text" class="form-control" placeholder="名称" id="name">
+                    <button class="btn btn-positive btn-large">确定</button>
+                    <button class="btn btn-negative btn-large">取消</button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </body>
+</body>
+
 </html>

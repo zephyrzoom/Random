@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="UTF-8">
     <title>抽奖</title>
     <link rel="stylesheet" href="css/prize.css">
@@ -9,33 +10,42 @@
     <!-- animate -->
     <link rel="stylesheet" href="http://s.mlcdn.co/animate.css">
     <!-- Jquery -->
-    <script>window.$ = window.jQuery = require('./js/jquery.js')</script>
-  </head>
-  <body>
     <script>
-    const {ipcRenderer} = require('electron');
-    $(document).ready(function () {
-      ipcRenderer.send('ready-message', 'ready');
-    });
+        window.$ = window.jQuery = require('./js/jquery.js')
+    </script>
+</head>
 
-    ipcRenderer.on('list-message', (event, arg) => {
-      var time = 600;
-      var i;
-      var sid = setInterval(function () {
-        if (time >= 4000) {
-          clearInterval(sid);
-          ipcRenderer.send('prize-complete', i);
-        }
-        i = Math.floor(Math.random()*arg.length);
-        var h = document.getElementById('window');
-        h.innerHTML = '<h1 class="animated pulse">' + arg[i] + '</h1>';
-        time += 500;
-      }, time);
-    });
+<body>
+    <script>
+        const {
+            ipcRenderer
+        } = require('electron');
+        $(document).ready(function() {
+            ipcRenderer.send('ready-message', 'ready');
+        });
 
+        ipcRenderer.on('list-message', (event, arg) => {
+            var time = 600;
+            // 获奖的序号
+            var i;
+
+            // 每600ms执行一次
+            var sid = setInterval(function() {
+                if (time >= 4000) {
+                    clearInterval(sid);
+                    ipcRenderer.send('prize-complete', i);
+                }
+                i = Math.floor(Math.random() * arg.length);
+                // 每次执行都重新填充h1，达到出现动画效果的目的
+                var h = document.getElementById('window');
+                h.innerHTML = '<h1 class="animated pulse">' + arg[i] + '</h1>';
+                time += 500;
+            }, time);
+        });
     </script>
     <div class="window" id="window">
-      <h1>开始</h1>
+        <h1>开始</h1>
     </div>
-  </body>
+</body>
+
 </html>
