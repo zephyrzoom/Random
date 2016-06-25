@@ -31,9 +31,11 @@
 
             // 每600ms执行一次
             var sid = setInterval(function() {
-                if (time >= 4000) {
+                if (time >= 8000) {
                     clearInterval(sid);
-                    ipcRenderer.send('prize-complete', i);
+                    $('div').click(function () {
+                      ipcRenderer.send('prize-complete', i);
+                    });
                 }
                 i = Math.floor(Math.random() * arg.length);
                 // 每次执行都重新填充h1，达到出现动画效果的目的

@@ -2,184 +2,219 @@
 <html>
 
 <head>
-    <meta charset="UTF-8">
-    <title>707抽奖姬</title>
-    <link rel="stylesheet" href="css/index.css">
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="css/photon.min.css">
-    <!-- Jquery -->
-    <script>
-        window.$ = window.jQuery = require('./js/jquery.js')
-    </script>
+  <meta charset="UTF-8">
+  <title>707抽奖姬</title>
+  <link rel="stylesheet" href="css/index.css">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/photon.min.css">
+  <!-- Jquery -->
+  <script>
+    window.$ = window.jQuery = require('./js/jquery.js')
+  </script>
 </head>
 
 <body>
-    <script>
-        const {
-            BrowserWindow
-        } = require('electron').remote;
-        const {
-            ipcMain
-        } = require('electron').remote;
-        const {
-            remote
-        } = require('electron');
-        const {
-            Menu,
-            MenuItem
-        } = remote;
+  <script>
+    const {
+      BrowserWindow
+    } = require('electron').remote;
+    const {
+      ipcMain
+    } = require('electron').remote;
+    const {
+      remote
+    } = require('electron');
+    const {
+      dialog
+    } = require('electron').remote;
+    const fs = require('fs');
 
-        let addWin;
-        let prizeWin;
-        let list = [];
-        let prizeList = [];
-        // 存储要删除的行
-        let del = 0;
+    const {
+      Menu,
+      MenuItem
+    } = remote;
 
-        const menu = new Menu();
-        menu.append(new MenuItem({
-            label: '删除',
-            click() {
-                // 点击删除后删除数组对应的元素然后更新列表
-                list.splice(del - 1, 1);
-                updateList();
-            }
-        }));
+    let addWin;
+    let prizeWin;
+    let list = [];
+    let prizeList = [];
+    // 存储要删除的行
+    let del = 0;
 
-        // 添加页面点击取消
-        ipcMain.on('synchronous-close', (event, arg) => {
-            addWin.close();
+    const menu = new Menu();
+    menu.append(new MenuItem({
+      label: '删除',
+      click() {
+        // 点击删除后删除数组对应的元素然后更新列表
+        list.splice(del - 1, 1);
+        updateList();
+      }
+    }));
+
+    // 添加页面点击取消
+    ipcMain.on('synchronous-close', (event, arg) => {
+      addWin.close();
+    });
+
+    // 添加页面点击确定
+    ipcMain.on('synchronous-add', (event, arg) => {
+      list.push(arg);
+      addWin.close();
+      updateList();
+    });
+
+    ipcMain.on('prize-complete', (event, arg) => {
+      prizeList.push(list[arg]);
+      list.splice(arg, 1);
+      prizeWin.close();
+      updateList();
+      updatePrizeList();
+    });
+
+    // 打开抽奖信息文件获取路径
+    function openFile() {
+      dialog.showOpenDialog({
+        properties: ['openFile']
+      }, function(filePath) {
+        loadFile(filePath);
+      })
+    }
+
+    function loadFile(filePath) {
+      fs.readFile(filePath.toString(), (err, data) => {
+        if (err) throw err;
+        console.log(data);
+        list = data.toString().split('\n');
+        list.pop();
+        updateList();
+      });
+    }
+
+    // 点击添加打开一个新页面
+    function addItem() {
+      addWin = new BrowserWindow({
+        width: 300,
+        height: 200,
+        autoHideMenuBar: true
+      });
+      addWin.loadURL(`file://${__dirname}/add.html`);
+      addWin.on('closed', () => {
+        addWin = null;
+      });
+    }
+
+    // 打开抽奖页面
+    function randomPrize() {
+      if (list.length > 0) {
+        prizeWin = new BrowserWindow({
+          width: 500,
+          height: 300,
+          frame: false,
+          alwaysOnTop: true,
+          fullscreen: true
+        });
+        prizeWin.loadURL(`file://${__dirname}/prize.html`);
+        ipcMain.on('ready-message', (event, arg) => {
+          event.sender.send('list-message', list);
         });
 
-        // 添加页面点击确定
-        ipcMain.on('synchronous-add', (event, arg) => {
-            list.push(arg);
-            addWin.close();
-            updateList();
+        prizeWin.on('closed', () => {
+          prizeWin = null;
         });
+      }
+    }
 
-        ipcMain.on('prize-complete', (event, arg) => {
-            prizeList.push(list[arg]);
-            list.splice(arg, 1);
-            prizeWin.close();
-            updateList();
-            updatePrizeList();
-        });
+    // 用最新的List填充table
+    function updateList() {
+      var listBody = document.getElementById('list-body');
+      listBody.innerHTML = "";
+      for (var i in list) {
+        listBody.innerHTML += '<tr class="item"><td class="id">' + (Number(i) + 1) + '</td><td>' + list[i] + '</td></tr>';
+      }
 
-        // 点击添加打开一个新页面
-        function addItem() {
-            addWin = new BrowserWindow({
-                width: 300,
-                height: 200,
-                autoHideMenuBar: true
-            });
-            addWin.loadURL(`file://${__dirname}/add.html`);
-            addWin.on('closed', () => {
-                addWin = null;
-            });
+      $('.item').mousedown(function(e) {
+        // 右键弹出菜单
+        if (e.which == 3) {
+          del = $(this).children('.id').text();
+          menu.popup(remote.getCurrentWindow());
         }
+      });
+    }
 
-        // 打开抽奖页面
-        function randomPrize() {
-            if (list.length > 0) {
-                prizeWin = new BrowserWindow({
-                    width: 500,
-                    height: 300,
-                    frame: false,
-                    alwaysOnTop: true,
-                    fullscreen: true
-                });
-                prizeWin.loadURL(`file://${__dirname}/prize.html`);
-                ipcMain.on('ready-message', (event, arg) => {
-                    event.sender.send('list-message', list);
-                });
+    // 抽完奖更新列表
+    function updatePrizeList() {
+      var prizes = document.getElementById('prize-list');
+      prizes.innerHTML = '<li class="list-group-header"><h4>获奖名单</h4></li>';
+      for (var i in prizeList) {
+        prizes.innerHTML += '<li class="list-group-item"><div class="media-body"><strong>' + prizeList[i] + '</strong></div></li>';
+      }
+      savePrize();
+    }
 
-                prizeWin.on('closed', () => {
-                    prizeWin = null;
-                });
-            }
-        }
+    // 保存获奖名单到文件
+    function savePrize() {
+      // 每行存一个获奖者
+      var savePrizeList = prizeList.join('\n');
+      fs.writeFile('获奖名单.txt', savePrizeList, (err) => {
+        if (err) throw err;
+      });
+    }
 
-        // 用最新的List填充table
-        function updateList() {
-            var listBody = document.getElementById('list-body');
-            listBody.innerHTML = "";
-            for (var i in list) {
-                listBody.innerHTML += '<tr class="item"><td class="id">' + (Number(i) + 1) + '</td><td>' + list[i] + '</td></tr>';
-            }
-
-            $('.item').mousedown(function(e) {
-                // 右键弹出菜单
-                if (e.which == 3) {
-                    del = $(this).children('.id').text();
-                    menu.popup(remote.getCurrentWindow());
-                }
-            });
-        }
-
-        function updatePrizeList() {
-            var prizes = document.getElementById('prize-list');
-            prizes.innerHTML = '<li class="list-group-header"><h4>获奖名单</h4></li>';
-            for (var i in prizeList) {
-                prizes.innerHTML += '<li class="list-group-item"><div class="media-body"><strong>' + prizeList[i] + '</strong></div></li>';
-            }
-        }
-
-        // github link
-        $(document).ready(function() {
-            const {
-                shell
-            } = require('electron');
-            $('#github').click(function(event) {
-                shell.openExternal('http://github.com/zephyrzoom');
-            });
-        });
-    </script>
+    // github link
+    $(document).ready(function() {
+      const {
+        shell
+      } = require('electron');
+      $('#github').click(function(event) {
+        shell.openExternal('http://github.com/zephyrzoom');
+      });
+    });
+  </script>
 
 
-    <div class="window">
-        <div class="window-content">
-            <div class="pane-group">
-                <div class="pane-sm sidebar" id="pane">
-                    <ul class="list-group" id="prize-list">
-                        <li class="list-group-header">
-                            <h4>获奖名单</h4>
-                        </li>
-                    </ul>
-                </div>
-                <div class="pane">
-                    <header class="toolbar toolbar-header">
-                        <div class="btn-group">
-                            <button class="btn btn-default">
-                                <span class="icon icon-folder"></span>从文件选择抽奖列表
-                            </button>
-                            <button class="btn btn-default" onclick="addItem()">
-                                <span class="icon icon-plus-circled"></span>添加
-                            </button>
-                            <button class="btn btn-default" onclick="randomPrize()">
-                                <span class="icon icon-trophy"></span>抽奖
-                            </button>
-                        </div>
-                    </header>
-
-                    <table class="table-striped">
-                        <thead>
-                            <tr>
-                                <th width="20">序号</th>
-                                <th>名称</th>
-                            </tr>
-                        </thead>
-                        <tbody id="list-body">
-                        </tbody>
-                    </table>
-
-                </div>
-            </div>
+  <div class="window">
+    <div class="window-content">
+      <div class="pane-group">
+        <div class="pane-sm sidebar" id="pane">
+          <ul class="list-group" id="prize-list">
+            <li class="list-group-header">
+              <h4>获奖名单</h4>
+            </li>
+          </ul>
         </div>
-        <footer class="toolbar toolbar-footer">
-            <h1 class="title"><a id="github"><span class="icon icon-github"></span></a></h1>
-        </footer>
+        <div class="pane">
+          <header class="toolbar toolbar-header">
+            <div class="btn-group">
+              <button class="btn btn-default" onclick="openFile()">
+                <span class="icon icon-folder"></span>从文件选择抽奖列表
+              </button>
+              <button class="btn btn-default" onclick="addItem()">
+                <span class="icon icon-plus-circled"></span>添加
+              </button>
+              <button class="btn btn-default" onclick="randomPrize()">
+                <span class="icon icon-trophy"></span>抽奖
+              </button>
+            </div>
+          </header>
+
+          <table class="table-striped">
+            <thead>
+              <tr>
+                <th width="20">序号</th>
+                <th>名称</th>
+              </tr>
+            </thead>
+            <tbody id="list-body">
+            </tbody>
+          </table>
+
+        </div>
+      </div>
     </div>
+    <footer class="toolbar toolbar-footer">
+      <h1 class="title"><a id="github"><span class="icon icon-github"></span></a></h1>
+    </footer>
+  </div>
 </body>
 
 </html>
